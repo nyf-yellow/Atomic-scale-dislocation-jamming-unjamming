@@ -14,7 +14,7 @@ Time evolution of dislocation density.
 ### StrainEvolution/
 Strain evolution data under different loading conditions.
 
-### StrainRate/
+### StrainRate.zip/
 Data used for stress-strain rate scaling analysis.
 
 ## Software
