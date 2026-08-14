@@ -5,11 +5,8 @@ This repository contains the molecular dynamics simulation files and processed d
 
 ## Contents
 
-### Model/
-Atomic models used for molecular dynamics simulations.
-
 ### LAMMPS/
-LAMMPS input files and simulation parameters.
+LAMMPS input files
 
 ### DislocationDensity/
 Time evolution of dislocation density.
