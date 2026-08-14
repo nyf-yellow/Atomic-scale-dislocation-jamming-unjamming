@@ -1,0 +1,94 @@
+# ------------------------ INITIALIZATION ----------------------------
+
+units           metal
+dimension       3
+boundary        p p p
+atom_style      atomic
+
+
+# ----------------------- ATOM DEFINITION ----------------------------
+
+# Initial atomic configuration
+read_data       initial_structure.data
+
+
+# ------------------------ FORCE FIELD -------------------------------
+
+pair_style      eam/fs
+pair_coeff      * * W_JNM_2018_Chen.eam.fs W
+
+
+# ------------------------ PARAMETERS --------------------------------
+
+variable        T equal 500          # Temperature (K)
+variable        P equal -34000         # Applied pressure (bar)
+
+timestep        0.002                 # Time step (ps)
+
+# Total simulation time: 5 ns
+variable        t2 equal $(5000/dt)
+
+variable        current_time equal "step*dt"
+
+# Dump interval
+variable        dump_interval equal round(v_t2/200)
+
+
+# ------------------------ DEFORMATION --------------------------------
+
+variable  tmpz equal "lz"
+variable  Lz0  equal  ${tmpz}
+variable  strainz equal "(lz-v_Lz0)/v_Lz0"
+
+
+# ------------------------ OUTPUT -------------------------------------
+
+thermo          100
+
+thermo_style    custom step temp pe ke etotal ecouple \
+                pxx pyy pzz lx ly lz v_strainz
+
+
+# Output strain evolution
+fix             strain_output all print 10 \
+                "${current_time} ${strainz}" \
+                file strain.dat screen no
+
+
+# Apply constant stress using NPT ensemble
+fix             deformation all npt temp ${T} ${T} $(100*dt) \
+                x 0 0 $(1000*dt) \
+                y 0 0 $(1000*dt) \
+                z ${P} ${P} $(1000*dt) \
+                nreset $(1000*dt)
+
+
+# Output atomic configurations
+dump            structure_dump all custom ${dump_interval} \
+                structure.* id type x y z vx vy vz
+
+
+# ------------------------ RUN SIMULATION ----------------------------
+
+# Run simulation in segments for restart convenience
+
+run             ${t2}
+write_data      restart_1000ps.data
+
+run             ${t2}
+write_data      restart_2000ps.data
+
+run             ${t2}
+write_data      restart_3000ps.data
+
+run             ${t2}
+write_data      restart_4000ps.data
+
+run             ${t2}
+write_data      restart_5000ps.data
+
+
+# ------------------------ CLEAN UP ----------------------------------
+
+unfix           strain_output
+unfix           deformation
